@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import Loader from '../Loader/Loader';
 import Button from '../Button/Button';
 import Searchbar from '../Searchbar/Searchbar';
@@ -6,54 +6,25 @@ import ImageGallery from '../ImageGallery/ImageGallery';
 import { Container, ErrorMessage } from './App.styled';
 import fetchImages from '../../servises/images-api';
 
-export default class App extends Component {
-  state = {
-    images: [],
-    searchWord: '',
-    pageNumber: 1,
-    pageTotal: '',
-    status: '',
-  };
+const App = () => {
+  const [images, setImages] = useState([]); // Inicializado con un arreglo vacío
+  const [searchWord, setSearchWord] = useState('');
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageTotal, setPageTotal] = useState(0);
+  const [status, setStatus] = useState('');
 
-  componentDidUpdate(prevProps, prevState) {
-    const { pageNumber, searchWord } = this.state;
-    const prevWord = prevState.searchWord;
-    const nextWord = searchWord;
-    const prevPage = prevState.pageNumber;
-    const nextPage = pageNumber;
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!searchWord) {
+        return; // No realiza la solicitud si searchWord está vacío al inicio
+      }
 
-    if (prevWord !== nextWord) {
-      this.setState({ status: 'LOADING' });
-      const newImage = fetchImages(nextWord, pageNumber);
-      newImage
-        .then(data => {
-          if (data.total === 0) {
-            this.setState({ status: 'ERROR' });
-          } else {
-            const newData = data.hits.map(
-              ({ id, webformatURL, largeImageURL }) => ({
-                id,
-                webformatURL,
-                largeImageURL,
-              })
-            );
-            this.setState({
-              images: newData,
-              status: 'OK',
-              pageTotal: data.totalHits,
-            });
-          }
-        })
-        .catch(() => {
-          this.setState({ status: 'ERROR' });
-        });
-    }
-
-    if (prevPage !== nextPage && prevWord === nextWord) {
-      this.setState({ status: 'LOADING' });
-      const newImage = fetchImages(nextWord, pageNumber);
-      newImage
-        .then(data => {
+      setStatus('LOADING');
+      try {
+        const data = await fetchImages(searchWord, pageNumber);
+        if (data.total === 0) {
+          setStatus('ERROR');
+        } else {
           const newData = data.hits.map(
             ({ id, webformatURL, largeImageURL }) => ({
               id,
@@ -61,32 +32,37 @@ export default class App extends Component {
               largeImageURL,
             })
           );
-          this.setState(prevState => ({
-            images: [...prevState.images, ...newData],
-            status: 'OK',
-          }));
-        })
-        .catch(() => {
-          this.setState({ status: 'ERROR' });
-        });
-    }
-  }
+          if (pageNumber === 1) {
+            setImages(newData);
+          } else {
+            setImages(prevImages => [...prevImages, ...newData]);
+          }
+          setStatus('OK');
+          setPageTotal(data.totalHits);
+        }
+      } catch (error) {
+        setStatus('ERROR');
+      }
+    };
 
-  formSubmitHandler = ({ keyWord }) => {
-    const { searchWord } = this.state;
+    fetchData();
+  }, [searchWord, pageNumber]);
+
+  const formSubmitHandler = ({ keyWord }) => {
     if (searchWord !== keyWord) {
-      this.setState({ searchWord: keyWord, pageNumber: 1, images: [] });
+      setSearchWord(keyWord);
+      setPageNumber(1);
+      setImages([]); // Reinicio del arreglo de imágenes al realizar una nueva búsqueda.
     } else {
-      this.setState({ searchWord: keyWord });
+      setSearchWord(keyWord);
     }
   };
 
-  handleIncrement = () => {
-    this.setState(prevState => ({ pageNumber: prevState.pageNumber + 1 }));
+  const handleIncrement = () => {
+    setPageNumber(prevPageNumber => prevPageNumber + 1);
   };
 
-  lastPageDef = () => {
-    const { pageTotal } = this.state;
+  const lastPageDef = () => {
     let lastPage = Number(pageTotal % 12);
     if (lastPage === 0) {
       return (lastPage = Number(pageTotal / 12));
@@ -95,29 +71,24 @@ export default class App extends Component {
     }
   };
 
-  render() {
-    const { status, searchWord, images, pageNumber, pageTotal } = this.state;
-    const lastPage = this.lastPageDef();
+  const lastPage = lastPageDef();
 
-    return (
-      <Container>
-        <Searchbar onSubmit={this.formSubmitHandler} />
-        <ImageGallery data={images} onClose={this.toggleModal} />
-        {status === 'ERROR' && (
-          <ErrorMessage>No images for keyword "{searchWord}"</ErrorMessage>
-        )}
-        {status === 'LOADING' && <Loader />}
-        {status === 'OK' && images.length > 11 && pageNumber !== lastPage && (
-          <Button
-            text={'Load more'}
-            type="button"
-            onClick={this.handleIncrement}
-          />
-        )}
-        {pageNumber === lastPage && pageTotal > 0 && (
-          <ErrorMessage>You've reached the end of search results.</ErrorMessage>
-        )}
-      </Container>
-    );
-  }
-}
+  return (
+    <Container>
+      <Searchbar onSubmit={formSubmitHandler} />
+      <ImageGallery data={images} />
+      {status === 'ERROR' && (
+        <ErrorMessage>No images for keyword "{searchWord}"</ErrorMessage>
+      )}
+      {status === 'LOADING' && <Loader />}
+      {status === 'OK' && images.length > 11 && pageNumber !== lastPage && (
+        <Button text={'Load more'} type="button" onClick={handleIncrement} />
+      )}
+      {pageNumber === lastPage && pageTotal > 0 && (
+        <ErrorMessage>You've reached the end of search results.</ErrorMessage>
+      )}
+    </Container>
+  );
+};
+
+export default App;
