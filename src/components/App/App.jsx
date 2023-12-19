@@ -48,7 +48,7 @@ const App = () => {
     fetchData();
   }, [searchWord, pageNumber]);
 
-  const formSubmitHandler = ({ keyWord }) => {
+  const formSubmitHandler = keyWord => {
     if (searchWord !== keyWord) {
       setSearchWord(keyWord);
       setPageNumber(1);

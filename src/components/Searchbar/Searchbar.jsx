@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState } from 'react';
 import {
   Searchcomponent,
   SearchForm,
@@ -8,49 +8,47 @@ import {
 } from './Searchbar.styled';
 import { FaSearch } from 'react-icons/fa';
 
-export default class Searchbar extends Component {
-  state = {
-    keyWord: '',
+const Searchbar = ({ onSubmit }) => {
+  const [keyWord, setKeyWord] = useState('');
+
+  const handleSearchChange = event => {
+    setKeyWord(event.currentTarget.value.toLowerCase());
   };
 
-  handleSearchChange = event => {
-    this.setState({ keyWord: event.currentTarget.value.toLowerCase() });
-  };
-
-  handleSubmit = event => {
+  const handleSubmit = event => {
     event.preventDefault();
 
-    if (this.state.keyWord.trim() === '') {
+    if (keyWord.trim() === '') {
       alert('Enter a search word.');
       return;
     }
 
-    this.props.onSubmit({ ...this.state });
-    this.setState({ keyWord: '' });
+    onSubmit(keyWord);
+    setKeyWord('');
   };
 
-  render() {
-    return (
-      <Searchcomponent>
-        <SearchForm className="form" onSubmit={this.handleSubmit}>
-          <SearchFormButton type="submit" className="button">
-            <SearchFormButtonLabel className="button-label">
-              Search
-            </SearchFormButtonLabel>
-            <FaSearch width="48" height="48" />
-          </SearchFormButton>
-          <SearchFormInput
-            className="input"
-            type="text"
-            autoComplete="off"
-            autoFocus
-            placeholder="Search images and photos"
-            name="keyWord"
-            value={this.state.keyWord}
-            onChange={this.handleSearchChange}
-          />
-        </SearchForm>
-      </Searchcomponent>
-    );
-  }
-}
+  return (
+    <Searchcomponent>
+      <SearchForm className="form" onSubmit={handleSubmit}>
+        <SearchFormButton type="submit" className="button">
+          <SearchFormButtonLabel className="button-label">
+            Search
+          </SearchFormButtonLabel>
+          <FaSearch width="48" height="48" />
+        </SearchFormButton>
+        <SearchFormInput
+          className="input"
+          type="text"
+          autoComplete="off"
+          autoFocus
+          placeholder="Search images and photos"
+          name="keyWord"
+          value={keyWord}
+          onChange={handleSearchChange}
+        />
+      </SearchForm>
+    </Searchcomponent>
+  );
+};
+
+export default Searchbar;
