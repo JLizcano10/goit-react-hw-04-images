@@ -3,7 +3,7 @@ import {
   ImageGalleryEl,
   ImageGalleryItemImage,
 } from './ImageGalleryItem.styled';
-import { Modal } from '../Modal/Modal';
+import Modal from '../Modal/Modal';
 
 const ImageGalleryItem = ({ id, src, largeSrc }) => {
   const [showModal, setShowModal] = useState(false);
