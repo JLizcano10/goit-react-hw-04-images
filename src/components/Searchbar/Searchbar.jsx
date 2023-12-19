@@ -7,6 +7,7 @@ import {
   SearchFormInput,
 } from './Searchbar.styled';
 import { FaSearch } from 'react-icons/fa';
+import PropTypes from 'prop-types';
 
 const Searchbar = ({ onSubmit }) => {
   const [keyWord, setKeyWord] = useState('');
@@ -49,6 +50,10 @@ const Searchbar = ({ onSubmit }) => {
       </SearchForm>
     </Searchcomponent>
   );
+};
+
+Searchbar.propTypes = {
+  onSubmit: PropTypes.func.isRequired,
 };
 
 export default Searchbar;

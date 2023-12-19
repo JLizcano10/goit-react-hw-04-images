@@ -4,6 +4,7 @@ import {
   ImageGalleryItemImage,
 } from './ImageGalleryItem.styled';
 import Modal from '../Modal/Modal';
+import PropTypes from 'prop-types';
 
 const ImageGalleryItem = ({ id, src, largeSrc }) => {
   const [showModal, setShowModal] = useState(false);
@@ -31,6 +32,12 @@ const ImageGalleryItem = ({ id, src, largeSrc }) => {
       )}
     </>
   );
+};
+
+ImageGalleryItem.propTypes = {
+  id: PropTypes.number.isRequired,
+  src: PropTypes.string.isRequired,
+  largeSrc: PropTypes.string.isRequired,
 };
 
 export default ImageGalleryItem;
